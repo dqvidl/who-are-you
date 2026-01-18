@@ -4,7 +4,6 @@ import { sessions, messages, sites } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { generateSiteFromInterview } from '@/lib/ai';
 import { pickImagesFromLibrary } from '@/lib/images';
-import { sendSMS } from '@/lib/twilio';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,12 +40,12 @@ export async function POST(request: NextRequest) {
       .set({ state: 'COMPLETED' })
       .where(eq(sessions.id, sessionId));
 
-    // Send link - use localhost in development, whoareyou.tech in production
+    // Site link is not sent to user - only accessible via the status page
+    // The person who submitted the phone number can access it through the waiting page
     const baseUrl = process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
       : (process.env.NEXT_PUBLIC_APP_URL || 'https://whoareyou.tech');
     const siteUrl = `${baseUrl}/site/${site.id}`;
-    await sendSMS(session.phone, `Your site is ready! Check it out: ${siteUrl}`);
 
     return NextResponse.json({ siteId: site.id, url: siteUrl });
   } catch (error: any) {

@@ -193,14 +193,8 @@ async function generateSite(sessionId: string, allMessages: any[]) {
     const [session] = await db.select().from(sessions).where(eq(sessions.id, sessionId)).limit(1);
     if (!session) return;
 
-    // Send link - always use whoareyou.tech format in production, localhost in development
-    // On Vercel, VERCEL_URL or VERCEL_ENV is always set, so check that to detect production
-    const isVercel = !!(process.env.VERCEL_URL || process.env.VERCEL_ENV);
-    const baseUrl = isVercel
-      ? 'https://whoareyou.tech'
-      : 'http://localhost:3000';
-    const siteUrl = `${baseUrl}/site/${site.id}`;
-    await sendSMS(session.phone, `alright here it is! ${siteUrl} - check it out, it's pretty cool if i do say so myself 😎`);
+    // Site link is not sent to user - only accessible via the status page
+    // The person who submitted the phone number can access it through the waiting page
 
     // Update session to completed
     await db.update(sessions)
