@@ -1,0 +1,145 @@
+@font-face {
+  font-family: 'Lota Grotesque';
+  src: url('lota-grotesque-alt-1/Los Andes  Lota Grotesque Alt 1 Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: transparent;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-image: url('public/hero.png');
+  background-size: cover;
+  background-position: center;
+  transform: scale(1);
+  transform-origin: center center;
+  will-change: transform;
+  z-index: 0;
+}
+
+.hero-text {
+  position: fixed;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  transform-origin: center center;
+  font-family: 'Lota Grotesque', sans-serif;
+  font-size: 3rem;
+  font-weight: normal;
+  color: #000;
+  letter-spacing: 0.03em;
+  z-index: 5;
+  opacity: 1;
+  will-change: opacity, transform;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Scroll spacer */
+.scroll-spacer {
+  height: 250vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* Phone Section - Off-white minimalist design */
+.phone-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #f5f5f5;
+  background-image: 
+    radial-gradient(circle, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-repeat: repeat;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  will-change: opacity;
+  opacity: 0;
+}
+
+.phone-section-inner {
+  max-width: 600px;
+  width: 100%;
+}
+
+.phone-label {
+  display: block;
+  font-family: 'Lota Grotesque', sans-serif;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 12px;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
+}
+
+.phone-input {
+  width: 100%;
+  font-family: 'Lota Grotesque', sans-serif;
+  font-size: 1.5rem;
+  color: #000;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #333;
+  padding: 12px 0;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.phone-input:focus {
+  border-bottom-color: #000;
+}
+
+.phone-input::placeholder {
+  color: #999;
+  opacity: 0.6;
+}
+
+.phone-submit {
+  margin-top: 24px;
+  font-family: 'Lota Grotesque', sans-serif;
+  font-size: 1rem;
+  color: #333;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #333;
+  padding: 12px 0;
+  cursor: pointer;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.phone-submit:hover {
+  border-bottom-color: #000;
+  color: #000;
+}

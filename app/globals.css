@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Lota Grotesque';
+  src: url('../lota-grotesque-alt-1/Los Andes  Lota Grotesque Alt 1 Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+.font-lota {
+  font-family: 'Lota Grotesque', sans-serif;
+}
+
+/* Hide Next.js development indicator */
+#__next-build-watcher,
+[data-nextjs-toast],
+body > div[style*="position: fixed"][style*="left: 0"][style*="bottom: 0"],
+a[href*="nextjs.org"]:has(img) {
+  display: none !important;
+  visibility: hidden !important;
+}
