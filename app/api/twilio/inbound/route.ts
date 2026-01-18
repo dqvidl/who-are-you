@@ -129,6 +129,17 @@ export async function POST(request: NextRequest) {
         // Trigger site generation (async)
         generateSite(activeSession.id, allMessages).catch(console.error);
       }
+    } else if (activeSession.state === 'GENERATING_SITE') {
+      // Site is being generated - let user know to wait
+      response = "still working on it! give me just a sec...";
+    } else if (activeSession.state === 'COMPLETED') {
+      // Site is already completed - offer to start fresh
+      response = "we already made your site! text back if you want to make another one";
+    }
+
+    // Ensure we always have a response
+    if (!response || response.trim().length === 0) {
+      response = "hey! text back to get started";
     }
 
     // Update session
@@ -140,27 +151,48 @@ export async function POST(request: NextRequest) {
     const messagesToSend = response.split('|||').map(m => m.trim()).filter(m => m.length > 0);
     
     // Save outbound messages and send them
+    console.log('[Twilio] Messages to send:', messagesToSend.length, messagesToSend);
     for (const msg of messagesToSend) {
-      await db.insert(messages).values({
-        sessionId: activeSession.id,
-        direction: 'outbound',
-        body: msg,
-      });
-      
-      console.log('[Twilio] Sending response:', msg);
-      await sendSMS(fromPhone, msg);
-      
-      // Small delay between multiple messages
-      if (messagesToSend.length > 1 && msg !== messagesToSend[messagesToSend.length - 1]) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+      try {
+        await db.insert(messages).values({
+          sessionId: activeSession.id,
+          direction: 'outbound',
+          body: msg,
+        });
+        
+        console.log('[Twilio] Sending SMS to:', fromPhone, 'Message:', msg);
+        await sendSMS(fromPhone, msg);
+        console.log('[Twilio] SMS sent successfully to:', fromPhone);
+        
+        // Small delay between multiple messages
+        if (messagesToSend.length > 1 && msg !== messagesToSend[messagesToSend.length - 1]) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (smsError: any) {
+        console.error('[Twilio] Error sending SMS:', smsError);
+        console.error('[Twilio] SMS Error details:', {
+          to: fromPhone,
+          message: msg,
+          error: smsError.message,
+          stack: smsError.stack
+        });
+        // Continue even if one SMS fails, but log it
       }
     }
     
-    console.log('[Twilio] SMS sent successfully');
+    console.log('[Twilio] All SMS operations completed');
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Twilio inbound error:', error);
+    console.error('[Twilio] Inbound webhook error:', error);
+    console.error('[Twilio] Error stack:', error.stack);
+    console.error('[Twilio] Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code
+    });
+    // Still return success to Twilio so it doesn't retry
+    // Log the error for debugging
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
