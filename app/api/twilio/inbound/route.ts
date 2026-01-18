@@ -194,9 +194,11 @@ async function generateSite(sessionId: string, allMessages: any[]) {
     if (!session) return;
 
     // Send link - always use whoareyou.tech format in production, localhost in development
-    const baseUrl = process.env.NODE_ENV === 'development'
-      ? 'http://localhost:3000'
-      : 'https://whoareyou.tech';
+    // On Vercel, VERCEL_URL or VERCEL_ENV is always set, so check that to detect production
+    const isVercel = !!(process.env.VERCEL_URL || process.env.VERCEL_ENV);
+    const baseUrl = isVercel
+      ? 'https://whoareyou.tech'
+      : 'http://localhost:3000';
     const siteUrl = `${baseUrl}/site/${site.id}`;
     await sendSMS(session.phone, `alright here it is! ${siteUrl} - check it out, it's pretty cool if i do say so myself 😎`);
 
