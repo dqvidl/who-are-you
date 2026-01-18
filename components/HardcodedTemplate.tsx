@@ -136,11 +136,11 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
   const heroImageUrl2 = content.heroImageUrl2 || content.heroImageUrl || '/hero.png';
   
   // Use pointFormSection2 if available, otherwise fall back to goals, or combine sections
-  const bulletPoints = content.pointFormSection2?.length > 0 
+  const bulletPoints = (content.pointFormSection2 && content.pointFormSection2.length > 0)
     ? content.pointFormSection2 
-    : (content.sections?.goals?.length > 0 
+    : (content.sections?.goals && content.sections.goals.length > 0
       ? content.sections.goals 
-      : (content.pointFormSection1?.length > 0 
+      : (content.pointFormSection1 && content.pointFormSection1.length > 0
         ? content.pointFormSection1 
         : (content.sections?.hobbies || [])));
   
