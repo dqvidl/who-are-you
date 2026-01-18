@@ -36,31 +36,30 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           gsap.set('.hero-image', { scale: 1.4 });
           gsap.set('.content-image-2', { scale: 1.4 });
 
-          // Hero text scale, move up, and fade - all happen together
+          // Hero text and image animations - START IMMEDIATELY on scroll, perfectly synced
+          // Using very short end distance so animation starts right away
+          const heroScrollTrigger = {
+            trigger: '.hero',
+            start: 'top top',
+            end: '+=40%', // Very short distance - animation completes quickly
+            scrub: 0.3,
+            pin: false,
+          };
+
+          // Hero text scale, move up, and fade - synchronized with zoom
           gsap.to('.hero-text', {
             scale: 2.2,
             y: '-30vh',
             opacity: 0,
             ease: 'none',
-            scrollTrigger: {
-              trigger: '.hero',
-              start: 'top top',
-              end: '+=120%',
-              scrub: 0.3,
-            },
+            scrollTrigger: heroScrollTrigger,
           });
 
-          // Hero image ZOOM OUT effect - happens at same time as text
+          // Hero image ZOOM OUT effect - EXACT SAME scroll trigger for perfect sync
           gsap.to('.hero-image', {
             scale: 1.0,
             ease: 'none',
-            scrollTrigger: {
-              trigger: '.hero',
-              start: 'top top',
-              end: '+=120%',
-              scrub: 0.3,
-              pin: false,
-            },
+            scrollTrigger: heroScrollTrigger,
           });
 
           // Fade out hero image as first content section comes up
@@ -75,14 +74,14 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             },
           });
 
-          // Second image ZOOM OUT effect - faster, less scrolling
+          // Second image ZOOM OUT effect - start immediately, reduced scrolling
           gsap.to('.content-image-2', {
             scale: 1.0,
             ease: 'none',
             scrollTrigger: {
               trigger: '.content-image-2-wrapper',
               start: 'top top',
-              end: '+=120%',
+              end: '+=40%', // Very short distance - animation completes quickly
               scrub: 0.3,
               pin: false,
             },
@@ -156,8 +155,8 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
         </div>
       </section>
 
-      {/* Scroll spacer for hero zoom effect - reduced for less scrolling */}
-      <div className="scroll-spacer h-[120vh] relative z-[1]" />
+      {/* Scroll spacer for hero zoom effect - minimal scrolling */}
+      <div className="scroll-spacer h-[50vh] relative z-[1]" />
 
       {/* Content container */}
       <div className="content-container relative z-10">
@@ -177,9 +176,9 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           </section>
         )}
 
-        {/* Image 2 with zoom out effect - reduced scrolling */}
+        {/* Image 2 with zoom out effect - minimal scrolling */}
         <section className="content-image-2-wrapper relative min-h-screen w-full overflow-hidden">
-          <div className="scroll-spacer-2 h-[120vh]" />
+          <div className="scroll-spacer-2 h-[50vh]" />
           <div 
             className="content-image-2 fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-[1.4] origin-center will-change-transform z-0"
             style={{

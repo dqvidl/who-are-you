@@ -136,17 +136,25 @@ export async function POST(request: NextRequest) {
       .set({ state: newState, questionIndex: newQuestionIndex })
       .where(eq(sessions.id, activeSession.id));
 
-    // Save outbound message
-    await db.insert(messages).values({
-      sessionId: activeSession.id,
-      direction: 'outbound',
-      body: response,
-    });
-
-    console.log('[Twilio] Sending response:', response);
+    // Check if response contains multiple messages (separated by |||)
+    const messagesToSend = response.split('|||').map(m => m.trim()).filter(m => m.length > 0);
     
-    // Send SMS response
-    await sendSMS(fromPhone, response);
+    // Save outbound messages and send them
+    for (const msg of messagesToSend) {
+      await db.insert(messages).values({
+        sessionId: activeSession.id,
+        direction: 'outbound',
+        body: msg,
+      });
+      
+      console.log('[Twilio] Sending response:', msg);
+      await sendSMS(fromPhone, msg);
+      
+      // Small delay between multiple messages
+      if (messagesToSend.length > 1 && msg !== messagesToSend[messagesToSend.length - 1]) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
     
     console.log('[Twilio] SMS sent successfully');
 

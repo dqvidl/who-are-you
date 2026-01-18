@@ -16,10 +16,13 @@ export async function generateSiteFromInterview(messages: Array<{ direction: str
     .filter(m => m.direction === 'inbound')
     .map(m => m.body)
     .join('\n');
-
+  
   const fullConversation = messages
     .map(m => `${m.direction === 'inbound' ? 'user' : 'poke'}: ${m.body}`)
     .join('\n');
+
+  // Extract only user messages for quote extraction
+  const userMessages = messages.filter(m => m.direction === 'inbound').map(m => m.body);
 
   // Extract name - usually the first short response that doesn't look like a question
   let extractedName = '';
@@ -51,7 +54,7 @@ Generate JSON with this exact structure:
     "values": ["2-3 short items"],
     "goals": ["2-3 short items"]
   },
-  "quote": "one inspiring quote or phrase from the conversation",
+  "quote": "one inspiring quote or phrase from the USER's messages only. CRITICAL: Only extract quotes from messages labeled 'user' in the conversation, never from 'poke' messages. Extract directly from what the user said, something meaningful they shared about themselves, their values, or goals. If no suitable quote from user messages exists, leave this field empty or use a summary phrase.",
   "imageTags": ["3-5 tags like creative, outdoors, tech, calm, social, music, nature"],
   "pointFormSection1": ["3-4 brief bullet points about hobbies, interests, or what they love"],
   "pointFormSection2": ["3-4 brief bullet points about values, goals, or what matters to them"],
@@ -90,6 +93,27 @@ Rules:
   if (!siteContent.name || siteContent.name === 'friend') {
     siteContent.name = extractedName || 'friend';
   }
+
+  // Ensure quote is only from user messages, not agent messages
+  if (siteContent.quote) {
+    const userMessagesLower = userMessages.map(m => m.toLowerCase());
+    const quoteLower = siteContent.quote.toLowerCase();
+    // Check if quote matches any user message (at least 5 chars to avoid false matches)
+    const isFromUser = userMessagesLower.some(msg => 
+      msg.length >= 5 && (msg.includes(quoteLower.substring(0, Math.min(20, quoteLower.length))) || quoteLower.includes(msg.substring(0, Math.min(20, msg.length))))
+    );
+    
+    // If quote doesn't match user messages, try to extract a better quote or remove it
+    if (!isFromUser && userMessages.length > 0) {
+      // Try to find a meaningful user message that could be a quote (longer messages, statements)
+      const potentialQuotes = userMessages.filter(m => m.length > 15 && m.length < 150);
+      if (potentialQuotes.length > 0) {
+        siteContent.quote = potentialQuotes[potentialQuotes.length - 1]; // Use most recent meaningful user message
+      } else {
+        siteContent.quote = ''; // Remove if no suitable user quote found
+      }
+    }
+  }
   
   // Ensure all text is lowercase (except the name field)
   if (siteContent.hero) {
@@ -119,6 +143,25 @@ Rules:
   
   if (siteContent.quote) {
     siteContent.quote = siteContent.quote.toLowerCase();
+    
+    // Ensure quote is only from user messages, not agent messages
+    const userMessagesLower = userMessages.map(m => m.toLowerCase());
+    const quoteLower = siteContent.quote.toLowerCase();
+    // Check if quote matches any user message (at least 5 chars to avoid false matches)
+    const isFromUser = userMessagesLower.some(msg => 
+      msg.length >= 5 && (msg.includes(quoteLower.substring(0, Math.min(20, quoteLower.length))) || quoteLower.includes(msg.substring(0, Math.min(20, msg.length))))
+    );
+    
+    // If quote doesn't match user messages, try to extract a better quote or remove it
+    if (!isFromUser && userMessages.length > 0) {
+      // Try to find a meaningful user message that could be a quote (longer messages, statements)
+      const potentialQuotes = userMessages.filter(m => m.length > 15 && m.length < 150);
+      if (potentialQuotes.length > 0) {
+        siteContent.quote = potentialQuotes[potentialQuotes.length - 1].toLowerCase(); // Use most recent meaningful user message
+      } else {
+        siteContent.quote = ''; // Remove if no suitable user quote found
+      }
+    }
   }
   
   return siteContent;
@@ -135,8 +178,8 @@ export async function generateHeroImage(imageTags: string[], name: string): Prom
 IMPORTANT: This must look like an actual photograph taken with a real camera - not AI-generated, not illustrated, not artistic rendering. It should appear as if shot by a professional photographer.
 
 Composition requirements:
-- Top third: Light sky with soft clouds, white or very light blue tones, minimal detail to allow text overlay
-- Middle and bottom: Natural scenery such as rolling hills, mountains, forests, fields, or natural landscapes that reflect the tags
+- Top HALF: Light sky with soft clouds, white or very light off-white tones (cream, light beige, very pale blue), minimal detail to allow text overlay. The top half of the image should be predominantly white or off-white.
+- Bottom half: Natural scenery such as rolling hills, mountains, forests, fields, or natural landscapes that reflect the tags
 - Must look like an actual photo: realistic depth of field, natural camera perspective, authentic textures, natural imperfections, realistic lighting
 - Shot with a real camera: natural bokeh, realistic focus, genuine depth, authentic color grading
 - Soft, natural lighting (golden hour or soft overcast daylight)
@@ -178,7 +221,7 @@ export async function generateConsentMessage(): Promise<string> {
     messages: [
       { 
         role: 'system', 
-        content: 'You are a casual, Gen Z text buddy. Generate a short, relaxed message asking if someone wants to answer questions to make a personal website. Keep it under 80 characters. All lowercase. Natural Gen Z casual tone - like texting a friend, not too slangy. Use casual phrases like "hey", "wanna", "down", "text back". Must convey: a friend wants to make them a website, asking if they\'re down to answer questions, tell them to text back to get started.' 
+        content: 'You are a casual, Gen Z text buddy. Generate a short, relaxed message asking if someone wants to answer questions to make a personal website. Keep it under 80 characters. All lowercase. Natural Gen Z casual tone - like texting a friend, not too slangy. MINIMAL PUNCTUATION - avoid periods, commas, exclamation marks. Use casual phrases like "hey", "wanna", "down", "text back". Must convey: a friend wants to make them a website, asking if they\'re down to answer questions, tell them to text back to get started.' 
       },
       { 
         role: 'user', 
@@ -200,7 +243,7 @@ export async function generateNameRequestMessage(): Promise<string> {
     messages: [
       { 
         role: 'system', 
-        content: 'You are a casual, Gen Z text buddy. Generate a short message asking for someone\'s name. Keep it under 50 characters. All lowercase. Natural Gen Z casual tone - relaxed, friendly, like texting a friend. Must convey: asking for their name first/initially. Examples: "first things first - what\'s your name?", "alright, what\'s your name?", "okay so what\'s your name?", "quick q - what\'s your name?"' 
+        content: 'You are a casual, Gen Z text buddy. Generate a short message asking for someone\'s name. Keep it under 50 characters. All lowercase. Natural Gen Z casual tone - relaxed, friendly, like texting a friend. MINIMAL PUNCTUATION - avoid periods, commas, exclamation marks. Must convey: asking for their name first/initially. Examples: "first things first whats your name", "alright whats your name", "okay so whats your name", "quick q whats your name"' 
       },
       { 
         role: 'user', 
@@ -222,7 +265,7 @@ export async function generateWrapUpMessage(): Promise<string> {
     messages: [
       { 
         role: 'system', 
-        content: 'You are a casual, Gen Z text buddy. Generate a short message indicating you\'re going to make/create something for them. Keep it under 60 characters. All lowercase. Natural Gen Z casual tone - relaxed, friendly. Must convey: acknowledging you got it, you\'re going to make them something quickly. Examples: "cool cool, got it. lemme make you something real quick...", "alright bet, making you something now...", "nice, got it. working on it now...", "okay sick, let me make you something quick..."' 
+        content: 'You are a casual, Gen Z text buddy. Generate a short message indicating you\'re going to make/create something for them. Keep it under 60 characters. All lowercase. Natural Gen Z casual tone - relaxed, friendly. MINIMAL PUNCTUATION - avoid periods, commas, exclamation marks. Must convey: acknowledging you got it, you\'re going to make them something quickly. Examples: "cool cool got it lemme make you something real quick", "alright bet making you something now", "nice got it working on it now", "okay sick let me make you something quick"' 
       },
       { 
         role: 'user', 
@@ -307,16 +350,18 @@ Your approach:
 1. When someone mentions something (hobby, interest, activity), ask 1-2 follow-up questions about it to get more details and understand what makes it special to them
 2. After you've explored a few topics (name, hobbies, interests, values, goals), ask if they want to add anything else
 3. If they say yes/mention something, ask follow-up questions about that new thing
-4. IMPORTANT: If the user indicates they're done (context clues: they said "that's all", "nothing else", "all set", asked about the website, seem satisfied, or you've gathered enough info), respond with a wrap-up message that acknowledges you got it and you're making them something quickly. Keep it casual, all lowercase, under 60 characters. Examples: "cool cool, got it. lemme make you something real quick...", "alright bet, making you something now...", "nice, got it. working on it..."
+4. IMPORTANT: If the user indicates they're done (context clues: they said "that's all", "nothing else", "all set", asked about the website, seem satisfied, or you've gathered enough info), respond with a wrap-up message that acknowledges you got it and you're making them something quickly. Keep it casual, all lowercase, under 60 characters. Examples: "cool cool got it lemme make you something real quick", "alright bet making you something now", "nice got it working on it"
 5. Only respond with a wrap-up message when you're confident they're done based on context, not just specific phrases
 
 Important rules:
 - React naturally to what they say - don't be robotic or formal
-- Use casual Gen Z language naturally: "that's sick", "love that", "that's cool", "nice", "bet", but don't overdo it
+- Use casual Gen Z language naturally: "thats sick", "love that", "thats cool", "nice", "bet", but don't overdo it
+- NO PUNCTUATION - never use periods, commas, exclamation marks, question marks. Text like you're actually texting a friend. If you need to separate thoughts, send 2 messages instead (separate them with "|||")
+- PREFER 2 MESSAGES OVER PUNCTUATION - if you want to say two things, send them as two separate texts with "|||" between them instead of using punctuation
 - Ask specific follow-up questions about things they mention (e.g., if they say "music", ask what kind, what they play, favorite artists)
 - After gathering name + 3-4 topics, check if they have anything else to add
 - Use context clues to determine if they're done: tone, content, questions about next steps
-- Keep responses SHORT (1-2 sentences max)
+- Keep responses SHORT (1-2 sentences max per message, but you can send 2 messages)
 - All lowercase
 - Be chill, curious, and engaging - like texting a friend, not interviewing
 - Don't repeat questions you've already asked
