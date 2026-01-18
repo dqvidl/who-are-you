@@ -48,12 +48,25 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           };
 
           // Hero text scale, move up, and fade - synchronized with zoom
+          // Fade out completely during the scroll animation
           gsap.to('.hero-text', {
             scale: 2.2,
             y: '-30vh',
             opacity: 0,
             ease: 'none',
             scrollTrigger: heroScrollTrigger,
+          });
+          
+          // Ensure text fully fades out - additional fade animation
+          gsap.to('.hero-text', {
+            opacity: 0,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.hero',
+              start: 'top top',
+              end: '+=150%',
+              scrub: true,
+            },
           });
 
           // Hero image ZOOM OUT effect - EXACT SAME scroll trigger for perfect sync
