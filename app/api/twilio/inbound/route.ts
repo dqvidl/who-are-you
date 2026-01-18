@@ -6,6 +6,9 @@ import { validateTwilioRequest, sendSMS } from '@/lib/twilio';
 import { getNextSMSResponse, generateSiteFromInterview, generateHeroImage, generateNameRequestMessage, generateWrapUpMessage } from '@/lib/ai';
 import { pickImagesFromLibrary } from '@/lib/images';
 import { sites } from '@/db/schema';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from '@/db/schema';
 
 export async function POST(request: NextRequest) {
   console.log('[Twilio] Webhook received at:', new Date().toISOString());
@@ -199,22 +202,41 @@ export async function POST(request: NextRequest) {
 
 async function generateSite(sessionId: string, allMessages: any[]) {
   try {
-    // Generate site content
-    const content = await generateSiteFromInterview(allMessages);
-
-    // Generate two hero images
-    const heroImageUrl = await generateHeroImage(content.imageTags, content.name || 'friend');
-    content.heroImageUrl = heroImageUrl;
+    console.log('[Site Generation] Starting site generation for session:', sessionId);
+    const startTime = Date.now();
     
-    // Generate second image (can be slightly different or complementary)
-    const heroImageUrl2 = await generateHeroImage(content.imageTags, content.name || 'friend');
+    // Generate site content
+    console.log('[Site Generation] Generating site content from interview...');
+    const contentStartTime = Date.now();
+    const content = await generateSiteFromInterview(allMessages);
+    console.log('[Site Generation] Site content generated in', Date.now() - contentStartTime, 'ms');
+
+    // Generate two hero images IN PARALLEL to save time
+    console.log('[Site Generation] Generating hero images in parallel...');
+    const imageStartTime = Date.now();
+    const [heroImageUrl, heroImageUrl2] = await Promise.all([
+      generateHeroImage(content.imageTags, content.name || 'friend'),
+      generateHeroImage(content.imageTags, content.name || 'friend')
+    ]);
+    console.log('[Site Generation] Both hero images generated in', Date.now() - imageStartTime, 'ms');
+    
+    content.heroImageUrl = heroImageUrl;
     content.heroImageUrl2 = heroImageUrl2;
 
     // Select images
     const imageIds = pickImagesFromLibrary(content.imageTags, content.template);
 
+    // Initialize DB connection for this function
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL not configured');
+    }
+    const dbUrl = process.env.DATABASE_URL;
+    const client = postgres(dbUrl, { max: 1 });
+    const localDb = drizzle(client, { schema });
+
     // Save site
-    const [site] = await db.insert(sites).values({
+    console.log('[Site Generation] Saving site to database...');
+    const [site] = await localDb.insert(sites).values({
       sessionId,
       template: 'HARDCODED', // Use hardcoded template
       contentJson: content,
@@ -222,17 +244,29 @@ async function generateSite(sessionId: string, allMessages: any[]) {
     }).returning();
 
     // Get session phone
-    const [session] = await db.select().from(sessions).where(eq(sessions.id, sessionId)).limit(1);
-    if (!session) return;
+    const [sessionRecord] = await localDb.select().from(sessions).where(eq(sessions.id, sessionId)).limit(1);
+    if (!sessionRecord) {
+      client.end();
+      throw new Error('Session not found');
+    }
 
     // Site link is not sent to user - only accessible via the status page
     // The person who submitted the phone number can access it through the waiting page
 
     // Update session to completed
-    await db.update(sessions)
+    await localDb.update(sessions)
       .set({ state: 'COMPLETED' })
       .where(eq(sessions.id, sessionId));
+    
+    client.end();
+    
+    const totalTime = Date.now() - startTime;
+    console.log('[Site Generation] Site generation completed successfully in', totalTime, 'ms');
   } catch (error) {
-    console.error('Site generation error:', error);
+    console.error('[Site Generation] Site generation error:', error);
+    // Try to log the full error stack
+    if (error instanceof Error) {
+      console.error('[Site Generation] Error stack:', error.stack);
+    }
   }
 }
