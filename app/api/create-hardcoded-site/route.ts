@@ -75,7 +75,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       siteId: site.id,
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/site/${site.id}`
+      url: process.env.NODE_ENV === 'development'
+        ? `http://localhost:3000/site/${site.id}`
+        : `${process.env.NEXT_PUBLIC_APP_URL || 'https://whoareyou.tech'}/site/${site.id}`
     });
   } catch (error: any) {
     console.error('Create hardcoded site error:', error);

@@ -41,8 +41,11 @@ export async function POST(request: NextRequest) {
       .set({ state: 'COMPLETED' })
       .where(eq(sessions.id, sessionId));
 
-    // Send link
-    const siteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/site/${site.id}`;
+    // Send link - use localhost in development, whoareyou.tech in production
+    const baseUrl = process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_APP_URL || 'https://whoareyou.tech');
+    const siteUrl = `${baseUrl}/site/${site.id}`;
     await sendSMS(session.phone, `Your site is ready! Check it out: ${siteUrl}`);
 
     return NextResponse.json({ siteId: site.id, url: siteUrl });
