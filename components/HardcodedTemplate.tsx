@@ -25,6 +25,13 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
 
         // Create a context for cleanup
         ctx = gsap.context(() => {
+          // Set initial state for hero text to ensure it's visible
+          gsap.set('.hero-text', {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+          });
+
           // Hero text scale and fade
           gsap.to('.hero-text', {
             scale: 2.2,
@@ -33,7 +40,7 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=250%',
+              end: '+=200%',
               scrub: 0.3,
             },
           });
@@ -44,25 +51,25 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=150%',
+              end: '+=120%',
               scrub: true,
             },
           });
 
-          // Hero image zoom effect (like landing page)
+          // Hero image zoom effect (like landing page) - reduced scroll
           gsap.to('.hero-image', {
             scale: 2.2,
             ease: 'none',
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=400%',
+              end: '+=300%',
               scrub: 0.3,
               pin: false,
             },
           });
 
-          // Fade out hero image as content comes up
+          // Fade out hero image as content comes up - faster
           gsap.to('.hero-image', {
             opacity: 0,
             ease: 'none',
@@ -74,14 +81,14 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             },
           });
 
-          // Second image zoom effect
+          // Second image zoom effect - reduced
           gsap.to('.content-image-2', {
             scale: 2.2,
             ease: 'none',
             scrollTrigger: {
               trigger: '.content-image-2',
               start: 'top top',
-              end: '+=400%',
+              end: '+=300%',
               scrub: 0.3,
               pin: false,
             },
@@ -91,7 +98,7 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           gsap.utils.toArray('.content-section').forEach((section: any, i: number) => {
             gsap.fromTo(section,
               {
-                y: 80,
+                y: 60,
                 opacity: 0,
               },
               {
@@ -100,7 +107,7 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
                 ease: 'power2.out',
                 scrollTrigger: {
                   trigger: section,
-                  start: 'top bottom-=150px',
+                  start: 'top bottom-=100px',
                   end: 'top center',
                   scrub: 1,
                 },
@@ -125,8 +132,10 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
   const heroImageUrl2 = content.heroImageUrl2 || content.heroImageUrl || '/hero.png';
   const pointFormSection1 = content.pointFormSection1 || content.sections?.hobbies || [];
   const pointFormSection2 = content.pointFormSection2 || content.sections?.goals || [];
-  const heroHeadline = content.hero?.headline || `this is ${name}.`;
-  const heroSubheadline = content.hero?.subheadline || 'who are they?';
+  
+  // Ensure hero text says "this is [NAME]" all lowercase
+  const heroHeadline = content.hero?.headline?.toLowerCase() || `this is ${name.toLowerCase()}`;
+  const heroSubheadline = content.hero?.subheadline?.toLowerCase() || 'who are they?';
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
@@ -138,19 +147,21 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             backgroundImage: `url('${heroImageUrl}')`,
           }}
         />
-        <h1 className="hero-text fixed top-[12vh] left-1/2 transform -translate-x-1/2 scale-100 origin-center font-lota text-5xl font-normal text-black tracking-wide z-[5] opacity-100 will-change-opacity text-center leading-tight">
-          {heroHeadline}<br />{heroSubheadline}
-        </h1>
+        <div className="fixed inset-0 z-[40] pointer-events-none">
+          <h1 className="hero-text absolute top-[12vh] left-1/2 transform -translate-x-1/2 scale-100 origin-center font-lota text-5xl font-normal text-black tracking-wide opacity-100 will-change-opacity text-center leading-tight pointer-events-none">
+            {heroHeadline}<br />{heroSubheadline}
+          </h1>
+        </div>
       </section>
 
-      {/* Scroll spacer for hero zoom effect */}
-      <div className="scroll-spacer h-[400vh] relative z-[1]" />
+      {/* Scroll spacer for hero zoom effect - reduced from 400vh to 250vh */}
+      <div className="scroll-spacer h-[250vh] relative z-[1]" />
 
       {/* Content container - scrollable sections */}
       <div className="content-container relative z-10 bg-[#fafafa]">
-        {/* First point form section - minimalist, centered text */}
+        {/* First point form section - minimalist, centered text - reduced padding */}
         {pointFormSection1.length > 0 && (
-          <section className="content-section min-h-screen flex items-center justify-center px-6 py-20">
+          <section className="content-section min-h-[70vh] flex items-center justify-center px-6 py-16">
             <div className="max-w-2xl w-full">
               <ul className="font-lota text-lg leading-relaxed text-gray-800 space-y-3 text-center">
                 {pointFormSection1.map((point, index) => (
@@ -164,9 +175,9 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           </section>
         )}
 
-        {/* Second image with zoom effect */}
+        {/* Second image with zoom effect - reduced spacer */}
         <section className="content-image-2-wrapper relative min-h-screen w-full overflow-hidden">
-          <div className="scroll-spacer-2 h-[400vh]" />
+          <div className="scroll-spacer-2 h-[250vh]" />
           <div 
             className="content-image-2 fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-100 origin-center will-change-transform z-0"
             style={{
@@ -175,9 +186,9 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           />
         </section>
 
-        {/* Second point form section - minimalist, centered text */}
+        {/* Second point form section - minimalist, centered text - reduced padding */}
         {pointFormSection2.length > 0 && (
-          <section className="content-section min-h-screen flex items-center justify-center px-6 py-20 bg-[#fafafa]">
+          <section className="content-section min-h-[70vh] flex items-center justify-center px-6 py-16 bg-[#fafafa]">
             <div className="max-w-2xl w-full">
               <ul className="font-lota text-lg leading-relaxed text-gray-800 space-y-3 text-center">
                 {pointFormSection2.map((point, index) => (
@@ -190,6 +201,43 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             </div>
           </section>
         )}
+
+        {/* Footer section - inspired by david-portfolio */}
+        <footer className="relative z-10 py-16 px-6 bg-[#fafafa] border-t border-gray-200">
+          <div className="max-w-2xl mx-auto">
+            {/* Quote section if available */}
+            {content.quote && (
+              <div className="mb-12 text-center">
+                <blockquote className="font-lota text-xl md:text-2xl text-gray-700 italic leading-relaxed">
+                  "{content.quote.toLowerCase()}"
+                </blockquote>
+              </div>
+            )}
+
+            {/* Conversation text if available */}
+            {content.conversationText && (
+              <div className="mb-12 text-center max-w-xl mx-auto">
+                <p className="font-lota text-base md:text-lg text-gray-600 leading-relaxed whitespace-pre-line">
+                  {content.conversationText.toLowerCase()}
+                </p>
+              </div>
+            )}
+
+            {/* Footer links and copyright */}
+            <div className="pt-8 border-t border-gray-200 text-center">
+              <div className="mb-4">
+                <p className="font-lota text-sm text-gray-500">
+                  {new Date().getFullYear()} © {name.toLowerCase()}
+                </p>
+              </div>
+              <div className="text-xs text-gray-400">
+                <a href="/" className="hover:text-gray-600 underline">
+                  made with who are you
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

@@ -42,8 +42,8 @@ Generate JSON with this exact structure:
   "template": "A" or "B" (A = bold/energetic for creative/social/ambitious/extroverted, B = calm/minimal for reflective/thoughtful/introspective/chill),
   "name": "person's first name (extract from conversation, if not found use 'friend')",
   "hero": {
-    "headline": "MAXIMUM 4 WORDS. A cool, sophisticated phrase that captures their essence. Think: poetic, minimal, mysterious, but not try-hard or cringe. Examples: 'walks in silence', 'builds in public', 'thinks in color', 'moves through space', 'sees the pattern'. Avoid: generic phrases like 'amazing person', cliches, or overly dramatic language. Make it feel effortless and cool.",
-    "subheadline": "MAXIMUM 4 WORDS. A complementary phrase that adds depth. Should feel natural and not forced. Examples: 'who are they?', 'this is them', 'in their own words'. Keep it simple and understated."
+    "headline": "EXACTLY 'this is [NAME]' - use the person's name. ALL LOWERCASE. For example: 'this is john', 'this is sarah', 'this is alex'.",
+    "subheadline": "MAXIMUM 4 WORDS. A complementary phrase that adds depth. Should feel natural and not forced. Examples: 'who are they?', 'this is them', 'in their own words'. Keep it simple and understated. ALL LOWERCASE."
   },
   "sections": {
     "hobbies": ["3-4 short items"],
@@ -59,8 +59,10 @@ Generate JSON with this exact structure:
 }
 
 Rules:
-- Hero headline: EXACTLY 4 WORDS MAX. Must be cool, sophisticated, poetic but effortless. No cringe, no try-hard energy, no generic phrases.
-- Hero subheadline: EXACTLY 4 WORDS MAX. Simple, understated, complementary.
+- ALL TEXT MUST BE LOWERCASE - no capital letters anywhere (except for the person's name in the "name" field)
+- Hero headline: EXACTLY 4 WORDS MAX. Must be cool, sophisticated, poetic but effortless. No cringe, no try-hard energy, no generic phrases. ALL LOWERCASE.
+- Hero subheadline: EXACTLY 4 WORDS MAX. Simple, understated, complementary. ALL LOWERCASE.
+- All bullet points, quotes, and conversation text: ALL LOWERCASE
 - Text must be 1-2 lines max per field (except conversationText)
 - No markdown, no HTML
 - Template choice based on personality traits mentioned
@@ -89,6 +91,36 @@ Rules:
     siteContent.name = extractedName || 'friend';
   }
   
+  // Ensure all text is lowercase (except the name field)
+  if (siteContent.hero) {
+    // Ensure headline is "this is [name]" format
+    const nameToUse = siteContent.name.toLowerCase();
+    if (siteContent.hero.headline) {
+      siteContent.hero.headline = `this is ${nameToUse}`;
+    } else {
+      siteContent.hero.headline = `this is ${nameToUse}`;
+    }
+    if (siteContent.hero.subheadline) {
+      siteContent.hero.subheadline = siteContent.hero.subheadline.toLowerCase();
+    }
+  }
+  
+  if (siteContent.pointFormSection1) {
+    siteContent.pointFormSection1 = siteContent.pointFormSection1.map((point: string) => point.toLowerCase());
+  }
+  
+  if (siteContent.pointFormSection2) {
+    siteContent.pointFormSection2 = siteContent.pointFormSection2.map((point: string) => point.toLowerCase());
+  }
+  
+  if (siteContent.conversationText) {
+    siteContent.conversationText = siteContent.conversationText.toLowerCase();
+  }
+  
+  if (siteContent.quote) {
+    siteContent.quote = siteContent.quote.toLowerCase();
+  }
+  
   return siteContent;
 }
 
@@ -98,20 +130,25 @@ export async function generateHeroImage(imageTags: string[], name: string): Prom
   
   // Create a scenic landscape prompt similar to hero.png - natural scenery with light sky
   // hero.png appears to be a natural landscape with trees/mountains and a light sky
-  const prompt = `A beautiful, natural scenic landscape photograph representing ${name}'s interests and personality. Style inspired by: ${imageTags.join(', ')}. 
+  const prompt = `A real, authentic landscape photograph taken with a professional camera, representing ${name}'s interests and personality. Style inspired by: ${imageTags.join(', ')}. 
+
+IMPORTANT: This must look like an actual photograph taken with a real camera - not AI-generated, not illustrated, not artistic rendering. It should appear as if shot by a professional photographer.
 
 Composition requirements:
 - Top third: Light sky with soft clouds, white or very light blue tones, minimal detail to allow text overlay
 - Middle and bottom: Natural scenery such as rolling hills, mountains, forests, fields, or natural landscapes that reflect the tags
-- Photorealistic style, like a professional landscape photograph
-- Soft, natural lighting (golden hour or soft daylight)
+- Must look like an actual photo: realistic depth of field, natural camera perspective, authentic textures, natural imperfections, realistic lighting
+- Shot with a real camera: natural bokeh, realistic focus, genuine depth, authentic color grading
+- Soft, natural lighting (golden hour or soft overcast daylight)
 - Peaceful, serene atmosphere
-- No abstract patterns, no artistic effects - just natural scenery
 - Wide, cinematic landscape view
-- Colors should be muted and natural, not overly vibrant
+- Colors should be muted and natural, not overly vibrant or saturated
+- Realistic textures: actual grass, real tree bark, authentic water surfaces, genuine rock formations
+- Natural imperfections: slight variations in terrain, organic growth patterns, realistic weather conditions
 - Think of landscapes like: misty mountains, peaceful valleys, serene forests, calm lakeshores, rolling countryside
+- Avoid: anything that looks AI-generated, illustrated, stylized, or painterly
 
-The image should look like a professional nature photograph, with the sky area light enough for black text to be readable.`;
+The image must appear as a genuine professional nature photograph, with the sky area light enough for black text to be readable. It should look like it came from a high-end camera, not computer graphics.`;
   
   try {
     const response = await openai.images.generate({

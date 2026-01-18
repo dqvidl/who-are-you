@@ -35,7 +35,10 @@ export async function GET(
     const site = existingSite[0];
 
     const isReady = session.state === 'COMPLETED' && site !== undefined;
-    const siteUrl = site ? `${process.env.NEXT_PUBLIC_APP_URL}/site/${site.id}` : null;
+    const baseUrl = process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_APP_URL || 'https://who-are-u.vercel.app');
+    const siteUrl = site ? `${baseUrl}/site/${site.id}` : null;
 
     client.end();
 
