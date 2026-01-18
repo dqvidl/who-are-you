@@ -121,10 +121,8 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
   const heroImageUrl = content.heroImageUrl || '/hero.png';
   const heroImageUrl2 = content.heroImageUrl2 || content.heroImageUrl || '/hero.png';
   
-  // Combine both bullet point sections into one
-  const pointFormSection1 = content.pointFormSection1 || content.sections?.hobbies || [];
-  const pointFormSection2 = content.pointFormSection2 || content.sections?.goals || [];
-  const allBulletPoints = [...pointFormSection1, ...pointFormSection2];
+  // Use only the second bullet points section (pointFormSection2) - the first one was never visible
+  const bulletPoints = content.pointFormSection2 || content.sections?.goals || [];
   
   const heroHeadline = content.hero?.headline?.toLowerCase() || `this is ${name.toLowerCase()}`;
   const heroSubheadline = content.hero?.subheadline?.toLowerCase() || 'who are they?';
@@ -151,15 +149,15 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
 
       {/* Content container */}
       <div className="content-container relative z-10">
-        {/* Single bullet points section with "about [name]:" heading */}
-        {allBulletPoints.length > 0 && (
+        {/* Bullet points section with "about [name]:" heading - using pointFormSection2 */}
+        {bulletPoints.length > 0 && (
           <section className="bullet-points-section min-h-[50vh] flex items-center justify-center px-6 py-16 bg-white relative">
             <div className="max-w-2xl w-full relative z-10">
               <h2 className="font-lota text-2xl text-gray-900 mb-8 text-center">
                 about {name.toLowerCase()}:
               </h2>
               <ul className="font-lota text-xl leading-relaxed text-gray-900 space-y-4 text-center">
-                {allBulletPoints.map((point, index) => (
+                {bulletPoints.map((point, index) => (
                   <li key={index} className="flex items-start justify-center">
                     <span className="mr-4 text-gray-500 text-2xl">◆</span>
                     <span className="text-gray-900 font-normal">{point}</span>

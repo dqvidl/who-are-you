@@ -179,7 +179,8 @@ IMPORTANT: This must look like an actual photograph taken with a real camera - n
 
 Composition requirements:
 - Top HALF: Light sky with soft clouds, white or very light off-white tones (cream, light beige, very pale blue), minimal detail to allow text overlay. The top half of the image should be predominantly white or off-white.
-- Bottom half: Natural scenery such as rolling hills, mountains, forests, fields, or natural landscapes that reflect the tags
+- IMPORTANT: Keep the top center area (where text will overlay) completely clear - no clouds, no objects, no details, just smooth light sky. Avoid placing any elements in the top center portion of the image.
+- Bottom half: Natural scenery such as rolling hills, mountains, forests, fields, or natural landscapes that reflect the tags. Scenery should be positioned in the bottom portion, not encroaching into the top half.
 - Must look like an actual photo: realistic depth of field, natural camera perspective, authentic textures, natural imperfections, realistic lighting
 - Shot with a real camera: natural bokeh, realistic focus, genuine depth, authentic color grading
 - Soft, natural lighting (golden hour or soft overcast daylight)
