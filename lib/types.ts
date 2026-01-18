@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const SiteContentSchema = z.object({
   template: z.enum(['A', 'B']),
+  name: z.string().optional(),
   hero: z.object({
     headline: z.string(),
     subheadline: z.string(),
@@ -14,6 +15,11 @@ export const SiteContentSchema = z.object({
   }),
   quote: z.string(),
   imageTags: z.array(z.string()),
+  heroImageUrl: z.string().optional(),
+  heroImageUrl2: z.string().optional(), // Second image
+  pointFormSection1: z.array(z.string()).optional(), // First point form section
+  pointFormSection2: z.array(z.string()).optional(), // Second point form section
+  conversationText: z.string().optional(),
 });
 
 export type SiteContent = z.infer<typeof SiteContentSchema>;

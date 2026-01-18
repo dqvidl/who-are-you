@@ -36,15 +36,29 @@ export async function POST(request: NextRequest) {
       ? `+${normalizedPhone}`
       : `+1${normalizedPhone}`;
 
-    // Create session
-    const [session] = await db.insert(schema.sessions).values({
+    // Check if there's an active session for this phone (get most recent first)
+    const existingSessions = await db.select().from(schema.sessions)
+      .where(eq(schema.sessions.phone, fullPhone));
+    
+    // Sort by createdAt descending (most recent first) and find active session
+    existingSessions.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    const activeSession = existingSessions.find(s => s.state !== 'COMPLETED' && s.state !== 'STOPPED');
+    
+    let session;
+    if (activeSession) {
+      // Use existing active session
+      session = activeSession;
+    } else {
+      // Create new session
+      [session] = await db.insert(schema.sessions).values({
       phone: fullPhone,
       state: 'CONSENT_PENDING',
       questionIndex: 0,
     }).returning();
+    }
 
     // Send consent SMS
-    const consentMessage = `hey! a friend wants to make you a personal website. got anything you want to share about yourself? hobbies, interests, whatever comes to mind - just text back with whatever you got`;
+    const consentMessage = `hey! a friend wants to make you a personal website. you down to answer a few quick questions? just text back yes or anything to get started!`;
     
     try {
       await sendSMS(fullPhone, consentMessage);
@@ -53,48 +67,16 @@ export async function POST(request: NextRequest) {
       // Continue even if SMS fails - session is created
     }
 
-    // Create hardcoded site immediately for now
-    const hardcodedContent = {
-      template: 'A',
-      hero: {
-        headline: "hey, i'm someone cool",
-        subheadline: "and this is my vibe"
-      },
-      sections: {
-        hobbies: ["coding", "design", "music", "hiking"],
-        interests: ["tech", "art", "nature", "photography"],
-        values: ["creativity", "authenticity", "growth"],
-        goals: ["build cool stuff", "travel more", "help others"]
-      },
-      quote: "life's too short to not do what you love",
-      imageTags: ["creative", "tech", "outdoors", "social"]
-    };
-
-    const [site] = await db.insert(schema.sites).values({
-      sessionId: session.id,
-      template: hardcodedContent.template,
-      contentJson: hardcodedContent,
-      imageIds: ['creative-1', 'tech-1', 'outdoors-1', 'social-1'],
-    }).returning();
-
-    // Update session to completed for now (hardcoded)
-    await db.update(schema.sessions)
-      .set({ state: 'COMPLETED' })
-      .where(eq(schema.sessions.id, session.id));
-
     client.end();
 
-    // Use localhost for local development
-    const siteUrl = `/site/${site.id}`;
+    // Return session info - site will be created after conversation completes
     const statusUrl = `/waiting/${session.id}`;
 
     return NextResponse.json({ 
       sessionId: session.id,
-      siteId: site.id,
       success: true,
       statusUrl: statusUrl,
-      siteUrl: siteUrl,
-      ready: true, // Hardcoded to true for now
+      ready: false, // Will be ready after conversation completes
     });
   } catch (error: any) {
     console.error('Submit phone error:', error);

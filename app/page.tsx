@@ -184,7 +184,7 @@ export default function Home() {
                           view site
                         </a>
                         <div className="text-xs text-gray-500 font-lota lowercase mt-2">
-                          http://localhost:3000/site/{siteId}
+                          {typeof window !== 'undefined' ? `${window.location.origin}/site/${siteId}` : `/site/${siteId}`}
                         </div>
                       </div>
                     ) : (

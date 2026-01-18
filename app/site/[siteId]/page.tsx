@@ -5,6 +5,7 @@ import postgres from 'postgres';
 import * as schema from '@/db/schema';
 import TemplateA from '@/components/TemplateA';
 import TemplateB from '@/components/TemplateB';
+import HardcodedTemplate from '@/components/HardcodedTemplate';
 import type { SiteContent } from '@/lib/types';
 
 export default async function SitePage({ params }: { params: Promise<{ siteId: string }> }) {
@@ -32,7 +33,9 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
 
   return (
     <>
-      {site.template === 'A' ? (
+      {site.template === 'HARDCODED' || !site.template ? (
+        <HardcodedTemplate content={content} />
+      ) : site.template === 'A' ? (
         <TemplateA content={content} imageIds={imageIds} />
       ) : (
         <TemplateB content={content} imageIds={imageIds} />
