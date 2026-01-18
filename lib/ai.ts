@@ -154,8 +154,8 @@ The image must appear as a genuine professional nature photograph, with the sky 
     const response = await openai.images.generate({
       model: 'dall-e-3',
       prompt: prompt,
-      size: '1024x1024',
-      quality: 'standard',
+      size: '1792x1024', // Landscape aspect ratio (1.75:1) better for wide screens like 2560x1664
+      quality: 'hd',
       n: 1,
     });
     
