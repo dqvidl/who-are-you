@@ -1,6 +1,6 @@
 # Who Are You
 
-SMS interview → instant personalized website
+Conversation over text → instant personalized website
 
 ## Setup
 
