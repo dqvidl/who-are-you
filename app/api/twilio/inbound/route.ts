@@ -193,10 +193,10 @@ async function generateSite(sessionId: string, allMessages: any[]) {
     const [session] = await db.select().from(sessions).where(eq(sessions.id, sessionId)).limit(1);
     if (!session) return;
 
-    // Send link - use localhost in development, whoareyou.tech in production
+    // Send link - always use whoareyou.tech format in production, localhost in development
     const baseUrl = process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
-      : (process.env.NEXT_PUBLIC_APP_URL || 'https://whoareyou.tech');
+      : 'https://whoareyou.tech';
     const siteUrl = `${baseUrl}/site/${site.id}`;
     await sendSMS(session.phone, `alright here it is! ${siteUrl} - check it out, it's pretty cool if i do say so myself 😎`);
 
