@@ -16,7 +16,7 @@ export async function generateSiteFromInterview(messages: Array<{ direction: str
     .filter(m => m.direction === 'inbound')
     .map(m => m.body)
     .join('\n');
-  
+
   const fullConversation = messages
     .map(m => `${m.direction === 'inbound' ? 'user' : 'poke'}: ${m.body}`)
     .join('\n');
@@ -170,6 +170,72 @@ The image must appear as a genuine professional nature photograph, with the sky 
   }
 }
 
+// Generate the initial consent message with slight variations
+export async function generateConsentMessage(): Promise<string> {
+  const openai = getOpenAI();
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { 
+        role: 'system', 
+        content: 'You are a casual, Gen Z text buddy. Generate a short, relaxed message asking if someone wants to answer questions to make a personal website. Keep it under 80 characters. All lowercase. Natural Gen Z casual tone - like texting a friend, not too slangy. Use casual phrases like "hey", "wanna", "down", "text back". Must convey: a friend wants to make them a website, asking if they\'re down to answer questions, tell them to text back to get started.' 
+      },
+      { 
+        role: 'user', 
+        content: 'Generate the initial consent message' 
+      }
+    ],
+    temperature: 0.8,
+    max_tokens: 50,
+  });
+  
+  return completion.choices[0]?.message?.content?.trim().toLowerCase() || "hey! a friend wants to make you a personal website. you down to answer some questions? just text back to get started!";
+}
+
+// Generate the name request message with slight variations
+export async function generateNameRequestMessage(): Promise<string> {
+  const openai = getOpenAI();
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { 
+        role: 'system', 
+        content: 'You are a casual, Gen Z text buddy. Generate a short message asking for someone\'s name. Keep it under 50 characters. All lowercase. Natural Gen Z casual tone - relaxed, friendly, like texting a friend. Must convey: asking for their name first/initially. Examples: "first things first - what\'s your name?", "alright, what\'s your name?", "okay so what\'s your name?", "quick q - what\'s your name?"' 
+      },
+      { 
+        role: 'user', 
+        content: 'Generate the name request message' 
+      }
+    ],
+    temperature: 0.8,
+    max_tokens: 40,
+  });
+  
+  return completion.choices[0]?.message?.content?.trim().toLowerCase() || "first things first - what's your name?";
+}
+
+// Generate the wrap-up message with slight variations
+export async function generateWrapUpMessage(): Promise<string> {
+  const openai = getOpenAI();
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { 
+        role: 'system', 
+        content: 'You are a casual, Gen Z text buddy. Generate a short message indicating you\'re going to make/create something for them. Keep it under 60 characters. All lowercase. Natural Gen Z casual tone - relaxed, friendly. Must convey: acknowledging you got it, you\'re going to make them something quickly. Examples: "cool cool, got it. lemme make you something real quick...", "alright bet, making you something now...", "nice, got it. working on it now...", "okay sick, let me make you something quick..."' 
+      },
+      { 
+        role: 'user', 
+        content: 'Generate the wrap-up message' 
+      }
+    ],
+    temperature: 0.8,
+    max_tokens: 40,
+  });
+  
+  return completion.choices[0]?.message?.content?.trim().toLowerCase() || "cool cool, got it. lemme make you something real quick...";
+}
+
 export async function getNextSMSResponse(
   state: string,
   questionIndex: number,
@@ -181,14 +247,14 @@ export async function getNextSMSResponse(
     const positiveResponse = lastMessage && !lastMessage.includes('stop') && !lastMessage.includes('no') && lastMessage.length > 0;
     
     if (positiveResponse || lastMessage.includes('yes') || lastMessage.includes('yep') || lastMessage.includes('ok') || lastMessage.includes('yeah') || lastMessage.includes('sure')) {
-      return "hey! ok so basically i'm gonna ask you some stuff about yourself to make you a personal website. first things first - what's your name?";
+      return await generateNameRequestMessage();
     }
     // If they said stop or no, respect that
     if (lastMessage.includes('stop') || lastMessage.includes('no thanks') || lastMessage.includes('not interested')) {
       return "alright no worries! if you change your mind just text back";
     }
     // Otherwise, ask for name first
-    return "hey! so a friend wants to make you a personal website. first things first - what's your name?";
+    return await generateNameRequestMessage();
   }
 
   if (state === 'INTERVIEWING') {
@@ -225,7 +291,7 @@ export async function getNextSMSResponse(
       // Make sure we didn't just ask for name in the last message
       const lastOutbound = outboundMessages[outboundMessages.length - 1];
       if (!lastOutbound?.body.toLowerCase().includes("what's your name") && !lastOutbound?.body.toLowerCase().includes("your name")) {
-        return "first things first - what's your name?";
+        return await generateNameRequestMessage();
       }
     }
     
@@ -235,24 +301,26 @@ export async function getNextSMSResponse(
     const recentOutbound = conversationHistory.filter(m => m.direction === 'outbound').slice(-3);
     const isAskingIfDone = recentOutbound.some(m => m.body.toLowerCase().includes('anything else') || m.body.toLowerCase().includes('we good') || m.body.toLowerCase().includes('add anything'));
 
-    const systemPrompt = `You're a casual, friendly text buddy named poke. You talk in all lowercase, have some attitude and personality. You're asking someone about themselves to make them a personal website. Keep it real and conversational, like texting a friend.
+    const systemPrompt = `You're a casual, Gen Z text buddy named poke. You talk in all lowercase, super relaxed and natural. You're asking someone about themselves to make them a personal website. Talk like you're texting a close friend - casual, genuine, a little bit enthusiastic but not over the top. Natural Gen Z vibe but not too much slang.
 
 Your approach:
 1. When someone mentions something (hobby, interest, activity), ask 1-2 follow-up questions about it to get more details and understand what makes it special to them
 2. After you've explored a few topics (name, hobbies, interests, values, goals), ask if they want to add anything else
 3. If they say yes/mention something, ask follow-up questions about that new thing
-4. IMPORTANT: If the user indicates they're done (context clues: they said "that's all", "nothing else", "all set", asked about the website, seem satisfied, or you've gathered enough info), respond EXACTLY with: "cool cool, got it. lemme make you something real quick..."
-5. Only respond with that exact wrap-up message when you're confident they're done based on context, not just specific phrases
+4. IMPORTANT: If the user indicates they're done (context clues: they said "that's all", "nothing else", "all set", asked about the website, seem satisfied, or you've gathered enough info), respond with a wrap-up message that acknowledges you got it and you're making them something quickly. Keep it casual, all lowercase, under 60 characters. Examples: "cool cool, got it. lemme make you something real quick...", "alright bet, making you something now...", "nice, got it. working on it..."
+5. Only respond with a wrap-up message when you're confident they're done based on context, not just specific phrases
 
 Important rules:
-- React naturally to what they say - don't be robotic
+- React naturally to what they say - don't be robotic or formal
+- Use casual Gen Z language naturally: "that's sick", "love that", "that's cool", "nice", "bet", but don't overdo it
 - Ask specific follow-up questions about things they mention (e.g., if they say "music", ask what kind, what they play, favorite artists)
 - After gathering name + 3-4 topics, check if they have anything else to add
 - Use context clues to determine if they're done: tone, content, questions about next steps
 - Keep responses SHORT (1-2 sentences max)
 - All lowercase
-- Be chill, curious, and engaging
-- Don't repeat questions you've already asked`;
+- Be chill, curious, and engaging - like texting a friend, not interviewing
+- Don't repeat questions you've already asked
+- Use natural conversational flow - respond to what they actually said, not generic templates`;
 
     const conversationPrompt = `Full conversation so far:
 ${allMessages}
@@ -260,7 +328,7 @@ ${allMessages}
 Your next message (casual, lowercase, 1-2 sentences max). ${isAskingIfDone ? 'They just responded - continue based on whether they said they want to add more or are done.' : 'Ask a follow-up question about what they mentioned, or if you\'ve covered enough topics, ask if they have anything else they want to add.'}`;
 
     const openai = getOpenAI();
-    const completion = await openai.chat.completions.create({
+  const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },

@@ -32,73 +32,57 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             y: 0,
           });
 
-          // Set initial state for hero image - start zoomed in, will zoom out
-          gsap.set('.hero-image', {
-            scale: 1.4,
-          });
+          // Set initial state for images - start zoomed in, will zoom out
+          gsap.set('.hero-image', { scale: 1.4 });
+          gsap.set('.content-image-2', { scale: 1.4 });
 
-          // Hero text scale and fade - similar to landing page
+          // Hero text scale, move up, and fade - all happen together
           gsap.to('.hero-text', {
             scale: 2.2,
             y: '-30vh',
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '.hero',
-              start: 'top top',
-              end: '+=250%',
-              scrub: 0.3,
-            },
-          });
-
-          gsap.to('.hero-text', {
             opacity: 0,
             ease: 'none',
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=150%',
-              scrub: true,
+              end: '+=120%',
+              scrub: 0.3,
             },
           });
 
-          // Hero image ZOOM OUT effect (opposite of landing page)
-          // Start at scale 2.2, zoom out to 1.0 as you scroll
+          // Hero image ZOOM OUT effect - happens at same time as text
           gsap.to('.hero-image', {
             scale: 1.0,
             ease: 'none',
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=400%',
+              end: '+=120%',
               scrub: 0.3,
               pin: false,
             },
           });
 
-          // Fade out hero image as content comes up
+          // Fade out hero image as first content section comes up
           gsap.to('.hero-image', {
             opacity: 0,
             ease: 'none',
             scrollTrigger: {
-              trigger: '.scroll-spacer',
+              trigger: '.first-content-section',
               start: 'top bottom',
-              end: 'bottom top',
+              end: 'top center',
               scrub: true,
             },
           });
 
-          // Second image ZOOM OUT effect - start zoomed in, zoom out
-          gsap.set('.content-image-2', {
-            scale: 1.4,
-          });
-
+          // Second image ZOOM OUT effect - faster, less scrolling
           gsap.to('.content-image-2', {
             scale: 1.0,
             ease: 'none',
             scrollTrigger: {
               trigger: '.content-image-2-wrapper',
               start: 'top top',
-              end: '+=400%',
+              end: '+=120%',
               scrub: 0.3,
               pin: false,
             },
@@ -109,20 +93,17 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             opacity: 0,
             ease: 'none',
             scrollTrigger: {
-              trigger: '.scroll-spacer-2',
+              trigger: '.second-content-section',
               start: 'top bottom',
-              end: 'bottom top',
+              end: 'top center',
               scrub: true,
             },
           });
 
           // Animate text sections coming up from bottom
-          gsap.utils.toArray('.content-section').forEach((section: any, i: number) => {
+          gsap.utils.toArray('.content-section').forEach((section: any) => {
             gsap.fromTo(section,
-              {
-                y: 60,
-                opacity: 0,
-              },
+              { y: 60, opacity: 0 },
               {
                 y: 0,
                 opacity: 1,
@@ -155,13 +136,12 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
   const pointFormSection1 = content.pointFormSection1 || content.sections?.hobbies || [];
   const pointFormSection2 = content.pointFormSection2 || content.sections?.goals || [];
   
-  // Ensure hero text says "this is [NAME]" all lowercase
   const heroHeadline = content.hero?.headline?.toLowerCase() || `this is ${name.toLowerCase()}`;
   const heroSubheadline = content.hero?.subheadline?.toLowerCase() || 'who are they?';
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
-      {/* Hero section with image and text */}
+      {/* Image 1: Hero section with text */}
       <section className="hero relative h-screen w-full overflow-hidden">
         <div 
           className="hero-image fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-[1.4] origin-center will-change-transform z-0" 
@@ -176,20 +156,20 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
         </div>
       </section>
 
-      {/* Scroll spacer for hero zoom effect - match landing page */}
-      <div className="scroll-spacer h-[250vh] relative z-[1]" />
+      {/* Scroll spacer for hero zoom effect - reduced for less scrolling */}
+      <div className="scroll-spacer h-[120vh] relative z-[1]" />
 
-      {/* Content container - scrollable sections */}
-      <div className="content-container relative z-10 bg-[#fafafa]">
-        {/* First point form section - more compact like landing page */}
+      {/* Content container */}
+      <div className="content-container relative z-10">
+        {/* First bullet points section - MORE VISIBLE */}
         {pointFormSection1.length > 0 && (
-          <section className="content-section min-h-[50vh] flex items-center justify-center px-6 py-12">
-            <div className="max-w-2xl w-full">
-              <ul className="font-lota text-lg leading-relaxed text-gray-800 space-y-3 text-center">
+          <section className="first-content-section content-section min-h-[60vh] flex items-center justify-center px-6 py-20 bg-white relative">
+            <div className="max-w-2xl w-full relative z-10">
+              <ul className="font-lota text-xl leading-relaxed text-gray-900 space-y-4 text-center">
                 {pointFormSection1.map((point, index) => (
                   <li key={index} className="flex items-start justify-center">
-                    <span className="mr-3 text-gray-400">◆</span>
-                    <span>{point}</span>
+                    <span className="mr-4 text-gray-500 text-2xl">◆</span>
+                    <span className="text-gray-900 font-normal">{point}</span>
                   </li>
                 ))}
               </ul>
@@ -197,9 +177,9 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           </section>
         )}
 
-        {/* Second image with zoom out effect - reduced scrolling */}
+        {/* Image 2 with zoom out effect - reduced scrolling */}
         <section className="content-image-2-wrapper relative min-h-screen w-full overflow-hidden">
-          <div className="scroll-spacer-2 h-[250vh]" />
+          <div className="scroll-spacer-2 h-[120vh]" />
           <div 
             className="content-image-2 fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-[1.4] origin-center will-change-transform z-0"
             style={{
@@ -208,58 +188,59 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           />
         </section>
 
-        {/* Second point form section - more compact */}
-        {pointFormSection2.length > 0 && (
-          <section className="content-section min-h-[50vh] flex items-center justify-center px-6 py-12 bg-[#fafafa]">
-            <div className="max-w-2xl w-full">
-              <ul className="font-lota text-lg leading-relaxed text-gray-800 space-y-3 text-center">
-                {pointFormSection2.map((point, index) => (
-                  <li key={index} className="flex items-start justify-center">
-                    <span className="mr-3 text-gray-400">◆</span>
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
+        {/* Second bullet points section + Footer */}
+        <section className="second-content-section relative z-10">
+          {/* Second bullet points section */}
+          {pointFormSection2.length > 0 && (
+            <div className="content-section min-h-[60vh] flex items-center justify-center px-6 py-20 bg-white">
+              <div className="max-w-2xl w-full">
+                <ul className="font-lota text-xl leading-relaxed text-gray-900 space-y-4 text-center">
+                  {pointFormSection2.map((point, index) => (
+                    <li key={index} className="flex items-start justify-center">
+                      <span className="mr-4 text-gray-500 text-2xl">◆</span>
+                      <span className="text-gray-900 font-normal">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </section>
-        )}
+          )}
 
-        {/* Footer section - more compact */}
-        <footer className="relative z-10 py-12 px-6 bg-[#fafafa] border-t border-gray-200">
-          <div className="max-w-2xl mx-auto">
-            {/* Quote section if available */}
-            {content.quote && (
-              <div className="mb-8 text-center">
-                <blockquote className="font-lota text-xl md:text-2xl text-gray-700 italic leading-relaxed">
-                  "{content.quote.toLowerCase()}"
-                </blockquote>
-              </div>
-            )}
+          {/* Footer section - improved design */}
+          <footer className="relative z-10 py-16 px-6 bg-[#fafafa] border-t border-gray-200">
+            <div className="max-w-2xl mx-auto">
+              {/* Quote section if available */}
+              {content.quote && (
+                <div className="mb-12 text-center">
+                  <blockquote className="font-lota text-2xl md:text-3xl text-gray-800 italic leading-relaxed max-w-xl mx-auto">
+                    "{content.quote.toLowerCase()}"
+                  </blockquote>
+                </div>
+              )}
 
-            {/* Conversation text if available */}
-            {content.conversationText && (
-              <div className="mb-8 text-center max-w-xl mx-auto">
-                <p className="font-lota text-base md:text-lg text-gray-600 leading-relaxed whitespace-pre-line">
-                  {content.conversationText.toLowerCase()}
-                </p>
-              </div>
-            )}
+              {/* Conversation text if available */}
+              {content.conversationText && (
+                <div className="mb-12 text-center max-w-2xl mx-auto">
+                  <p className="font-lota text-lg md:text-xl text-gray-700 leading-relaxed whitespace-pre-line">
+                    {content.conversationText.toLowerCase()}
+                  </p>
+                </div>
+              )}
 
-            {/* Footer links and copyright */}
-            <div className="pt-6 border-t border-gray-200 text-center">
-              <div className="mb-3">
+              {/* Footer links and copyright - cleaner design */}
+              <div className="pt-8 border-t border-gray-300 text-center space-y-3">
                 <p className="font-lota text-sm text-gray-500">
                   {new Date().getFullYear()} © {name.toLowerCase()}
                 </p>
-              </div>
-              <div className="text-xs text-gray-400">
-                <a href="/" className="hover:text-gray-600 underline">
-                  made with who are you
-                </a>
+                <div className="text-xs text-gray-400">
+                  <a href="/" className="hover:text-gray-600 underline transition-colors">
+                    made with who are you
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
-        </footer>
+          </footer>
+        </section>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { sessions, messages } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { validateTwilioRequest, sendSMS } from '@/lib/twilio';
-import { getNextSMSResponse, generateSiteFromInterview, generateHeroImage } from '@/lib/ai';
+import { getNextSMSResponse, generateSiteFromInterview, generateHeroImage, generateNameRequestMessage, generateWrapUpMessage } from '@/lib/ai';
 import { pickImagesFromLibrary } from '@/lib/images';
 import { sites } from '@/db/schema';
 
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         newState = 'INTERVIEWING';
         newQuestionIndex = 1;
         // When transitioning to INTERVIEWING, always ask for name first
-        response = "first things first - what's your name?";
+        response = await generateNameRequestMessage();
       } else {
         // Empty message - ask again
         response = "you down? just text back yes or anything to get started!";
@@ -108,17 +108,18 @@ export async function POST(request: NextRequest) {
       const userResponses = allMessages.filter((m: any) => m.direction === 'inbound').length;
       response = await getNextSMSResponse(newState, newQuestionIndex, allMessages);
       
-      // Check if AI response indicates we should wrap up - AI will return the exact wrap-up message when done
+      // Check if AI response indicates we should wrap up - AI will return a wrap-up message when done
       const responseLower = response.toLowerCase().trim();
-      // AI returns exactly "cool cool, got it. lemme make you something real quick..." when it determines user is done
-      const aiSaidDone = responseLower === 'cool cool, got it. lemme make you something real quick...' || 
-                        (responseLower.includes('make you something') && responseLower.includes('quick'));
+      // AI returns a wrap-up message when it determines user is done (contains "make you something" or similar)
+      const aiSaidDone = responseLower.includes('make you something') || 
+                        responseLower.includes('making you') ||
+                        (responseLower.includes('got it') && (responseLower.includes('quick') || responseLower.includes('now')));
       
       if (aiSaidDone && userResponses >= 2) {
         // AI determined user is done based on context - wrap up
         newState = 'GENERATING_SITE';
-        // Ensure we use the exact wrap-up message
-        response = 'cool cool, got it. lemme make you something real quick...';
+        // Generate wrap-up message with GPT for variation
+        response = await generateWrapUpMessage();
         
         // Update session state
         await db.update(sessions)

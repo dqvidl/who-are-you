@@ -57,8 +57,9 @@ export async function POST(request: NextRequest) {
     }).returning();
     }
 
-    // Send consent SMS
-    const consentMessage = `hey! a friend wants to make you a personal website. you down to answer a few quick questions? just text back yes or anything to get started!`;
+    // Send consent SMS - generate with GPT for variation
+    const { generateConsentMessage } = await import('@/lib/ai');
+    const consentMessage = await generateConsentMessage();
     
     try {
       await sendSMS(fullPhone, consentMessage);
