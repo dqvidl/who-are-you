@@ -32,7 +32,12 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             y: 0,
           });
 
-          // Hero text scale and fade
+          // Set initial state for hero image - start zoomed in, will zoom out
+          gsap.set('.hero-image', {
+            scale: 1.4,
+          });
+
+          // Hero text scale and fade - similar to landing page
           gsap.to('.hero-text', {
             scale: 2.2,
             y: '-30vh',
@@ -40,7 +45,7 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=200%',
+              end: '+=250%',
               scrub: 0.3,
             },
           });
@@ -51,25 +56,26 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=120%',
+              end: '+=150%',
               scrub: true,
             },
           });
 
-          // Hero image zoom effect (like landing page) - reduced scroll
+          // Hero image ZOOM OUT effect (opposite of landing page)
+          // Start at scale 2.2, zoom out to 1.0 as you scroll
           gsap.to('.hero-image', {
-            scale: 2.2,
+            scale: 1.0,
             ease: 'none',
             scrollTrigger: {
               trigger: '.hero',
               start: 'top top',
-              end: '+=300%',
+              end: '+=400%',
               scrub: 0.3,
               pin: false,
             },
           });
 
-          // Fade out hero image as content comes up - faster
+          // Fade out hero image as content comes up
           gsap.to('.hero-image', {
             opacity: 0,
             ease: 'none',
@@ -81,16 +87,32 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             },
           });
 
-          // Second image zoom effect - reduced
+          // Second image ZOOM OUT effect - start zoomed in, zoom out
+          gsap.set('.content-image-2', {
+            scale: 1.4,
+          });
+
           gsap.to('.content-image-2', {
-            scale: 2.2,
+            scale: 1.0,
             ease: 'none',
             scrollTrigger: {
-              trigger: '.content-image-2',
+              trigger: '.content-image-2-wrapper',
               start: 'top top',
-              end: '+=300%',
+              end: '+=400%',
               scrub: 0.3,
               pin: false,
+            },
+          });
+
+          // Fade out second image as next section comes up
+          gsap.to('.content-image-2', {
+            opacity: 0,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.scroll-spacer-2',
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
             },
           });
 
@@ -142,7 +164,7 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
       {/* Hero section with image and text */}
       <section className="hero relative h-screen w-full overflow-hidden">
         <div 
-          className="hero-image fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-100 origin-center will-change-transform z-0" 
+          className="hero-image fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-[1.4] origin-center will-change-transform z-0" 
           style={{
             backgroundImage: `url('${heroImageUrl}')`,
           }}
@@ -154,14 +176,14 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
         </div>
       </section>
 
-      {/* Scroll spacer for hero zoom effect - reduced from 400vh to 250vh */}
+      {/* Scroll spacer for hero zoom effect - match landing page */}
       <div className="scroll-spacer h-[250vh] relative z-[1]" />
 
       {/* Content container - scrollable sections */}
       <div className="content-container relative z-10 bg-[#fafafa]">
-        {/* First point form section - minimalist, centered text - reduced padding */}
+        {/* First point form section - more compact like landing page */}
         {pointFormSection1.length > 0 && (
-          <section className="content-section min-h-[70vh] flex items-center justify-center px-6 py-16">
+          <section className="content-section min-h-[50vh] flex items-center justify-center px-6 py-12">
             <div className="max-w-2xl w-full">
               <ul className="font-lota text-lg leading-relaxed text-gray-800 space-y-3 text-center">
                 {pointFormSection1.map((point, index) => (
@@ -175,20 +197,20 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           </section>
         )}
 
-        {/* Second image with zoom effect - reduced spacer */}
+        {/* Second image with zoom out effect - reduced scrolling */}
         <section className="content-image-2-wrapper relative min-h-screen w-full overflow-hidden">
           <div className="scroll-spacer-2 h-[250vh]" />
           <div 
-            className="content-image-2 fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-100 origin-center will-change-transform z-0"
+            className="content-image-2 fixed top-0 left-0 w-full h-screen bg-cover bg-center scale-[1.4] origin-center will-change-transform z-0"
             style={{
               backgroundImage: `url('${heroImageUrl2}')`,
             }}
           />
         </section>
 
-        {/* Second point form section - minimalist, centered text - reduced padding */}
+        {/* Second point form section - more compact */}
         {pointFormSection2.length > 0 && (
-          <section className="content-section min-h-[70vh] flex items-center justify-center px-6 py-16 bg-[#fafafa]">
+          <section className="content-section min-h-[50vh] flex items-center justify-center px-6 py-12 bg-[#fafafa]">
             <div className="max-w-2xl w-full">
               <ul className="font-lota text-lg leading-relaxed text-gray-800 space-y-3 text-center">
                 {pointFormSection2.map((point, index) => (
@@ -202,12 +224,12 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
           </section>
         )}
 
-        {/* Footer section - inspired by david-portfolio */}
-        <footer className="relative z-10 py-16 px-6 bg-[#fafafa] border-t border-gray-200">
+        {/* Footer section - more compact */}
+        <footer className="relative z-10 py-12 px-6 bg-[#fafafa] border-t border-gray-200">
           <div className="max-w-2xl mx-auto">
             {/* Quote section if available */}
             {content.quote && (
-              <div className="mb-12 text-center">
+              <div className="mb-8 text-center">
                 <blockquote className="font-lota text-xl md:text-2xl text-gray-700 italic leading-relaxed">
                   "{content.quote.toLowerCase()}"
                 </blockquote>
@@ -216,7 +238,7 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
 
             {/* Conversation text if available */}
             {content.conversationText && (
-              <div className="mb-12 text-center max-w-xl mx-auto">
+              <div className="mb-8 text-center max-w-xl mx-auto">
                 <p className="font-lota text-base md:text-lg text-gray-600 leading-relaxed whitespace-pre-line">
                   {content.conversationText.toLowerCase()}
                 </p>
@@ -224,8 +246,8 @@ export default function HardcodedTemplate({ content }: HardcodedTemplateProps) {
             )}
 
             {/* Footer links and copyright */}
-            <div className="pt-8 border-t border-gray-200 text-center">
-              <div className="mb-4">
+            <div className="pt-6 border-t border-gray-200 text-center">
+              <div className="mb-3">
                 <p className="font-lota text-sm text-gray-500">
                   {new Date().getFullYear()} © {name.toLowerCase()}
                 </p>
